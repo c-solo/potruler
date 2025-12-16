@@ -1,0 +1,11 @@
+[package]
+name = "firmware"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+protocol = { path = "../protocol" }
+
+embassy-sync.workspace = true
+esp-hal.workspace = true
+embassy-time.workspace = true

@@ -1,0 +1,18 @@
+[workspace]
+resolver = "2"
+members = [
+    "protocol",
+    "firmware",
+    "robot"
+]
+
+[workspace.dependencies]
+log = "0.4"
+
+# Esp related crates
+esp-hal = { version = "1", default-features = false }
+embedded-hal-async = { version = "1.0" }
+
+# Async with embassy
+embassy-time = { version = "0.5", features = ["tick-hz-1_000_000"]}
+embassy-sync = { version = "0.7"}
