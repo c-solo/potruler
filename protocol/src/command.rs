@@ -1,12 +1,9 @@
-
-
-
 /// Command to control the LED.
 pub enum LedCmd {
     On,
     Off,
     /// Blink for given ms.
-    Blink(u32),
+    Blink(u64),
 }
 
 /// Command to control the movement of the robot.

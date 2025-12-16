@@ -8,6 +8,8 @@ resolver = "2"
 firmware = { path = "../firmware" }
 protocol = { path = "../protocol" }
 
+log.workspace = true
+static_cell.workspace = true
 
 # Esp related crates
 esp-hal = { workspace = true, features = ["esp32c3", "unstable", "rt"] }
@@ -18,5 +20,3 @@ esp-bootloader-esp-idf = { version = "0.4", features = ["esp32c3"] }
 # Async with embassy
 embassy-executor = { version = "0.9", features = [] }
 esp-rtos = { version = "0.2.0", features = ["esp32c3", "embassy"] }
-log = "0.4.29"
-

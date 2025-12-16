@@ -8,6 +8,8 @@ members = [
 
 [workspace.dependencies]
 log = "0.4"
+static_cell = {  version = "2.1", features = ["nightly"] }
+defmt = { version = "1"}
 
 # Esp related crates
 esp-hal = { version = "1", default-features = false }
@@ -16,3 +18,4 @@ embedded-hal-async = { version = "1.0" }
 # Async with embassy
 embassy-time = { version = "0.5", features = ["tick-hz-1_000_000"]}
 embassy-sync = { version = "0.7"}
+embassy-executor = { version = "0.9" }
