@@ -4,8 +4,7 @@
 use esp_backtrace as _;
 use esp_hal::{
     interrupt::software::SoftwareInterruptControl,
-    ledc::{timer, timer::TimerIFace, Ledc},
-    time::Rate,
+    ledc::{channel::Number, timer, Ledc},
     timer::timg::TimerGroup,
     Config,
 };
@@ -28,22 +27,9 @@ async fn main(spawner: embassy_executor::Spawner) {
     let mut ledc = Ledc::new(peripherals.LEDC);
     ledc.set_global_slow_clock(esp_hal::ledc::LSGlobalClkSource::APBClk);
     let timer = LEDC_TIMER.init(ledc.timer(timer::Number::Timer0));
-    timer
-        .configure(timer::config::Config {
-            duty: timer::config::Duty::Duty14Bit,
-            clock_source: timer::LSClockSource::APBClk,
-            frequency: Rate::from_hz(24),
-        })
-        .unwrap();
+    let led_channel = ledc.channel(Number::Channel0, peripherals.GPIO18);
 
-    let led = led::Led::new(
-        "status_led",
-        &ledc,
-        timer,
-        esp_hal::ledc::channel::Number::Channel0,
-        peripherals.GPIO18,
-    )
-    .unwrap();
+    let led = led::Led::new("status_led", timer, led_channel).unwrap();
 
     let timer_group0 = TimerGroup::new(peripherals.TIMG0);
     let timer0 = timer_group0.timer0;
