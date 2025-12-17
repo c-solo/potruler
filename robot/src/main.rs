@@ -1,47 +1,35 @@
 #![no_std]
 #![no_main]
 
-use esp_backtrace as _;
-use esp_hal::{
-    interrupt::software::SoftwareInterruptControl,
-    ledc::{channel::Number, timer, Ledc},
-    timer::timg::TimerGroup,
-    Config,
-};
+use defmt_rtt as _;
 use firmware::hardware::led;
-use log::info;
+use panic_probe as _;
 use protocol::{channels::LED_SIGNAL, command::LedCmd};
-use static_cell::StaticCell;
 
-esp_bootloader_esp_idf::esp_app_desc!();
+use embassy_executor::Spawner;
+use embassy_stm32::{bind_interrupts, dma, peripherals, usart};
+use embassy_stm32::{gpio::{Level, Output, Speed}, i2c, Config};
+use defmt as _;
 
-static LEDC_TIMER: StaticCell<timer::Timer<esp_hal::ledc::LowSpeed>> = StaticCell::new();
+bind_interrupts!(struct Irqs {
+    USART2 => usart::InterruptHandler<peripherals::USART2>;
+});
 
-#[esp_rtos::main]
-async fn main(spawner: embassy_executor::Spawner) {
-    esp_println::logger::init_logger(log::LevelFilter::Info);
+#[embassy_executor::main]
+async fn main(spawner: Spawner) {
+    let config = Config::default();
+    let p = embassy_stm32::init(config);
 
-    let peripherals = esp_hal::init(Config::default());
+    // init I2C for sensors
+    let i2c = i2c::I2c::new_blocking(p.I2C1, p.PB8, p.PB9, i2c::Config::default());
 
-    // INIT LEDC
-    let mut ledc = Ledc::new(peripherals.LEDC);
-    ledc.set_global_slow_clock(esp_hal::ledc::LSGlobalClkSource::APBClk);
-    let timer = LEDC_TIMER.init(ledc.timer(timer::Number::Timer0));
-    let led_channel = ledc.channel(Number::Channel0, peripherals.GPIO18);
+    // PC13 - Black Pill on-board LED
+    let led_pin = Output::new(p.PC13, Level::Low, Speed::Low);
+    let led = led::Led::new("status_led", led_pin);
 
-    let led = led::Led::new("status_led", timer, led_channel).unwrap();
+    defmt::info!("Hello from STM32F401CCU6!");
 
-    let timer_group0 = TimerGroup::new(peripherals.TIMG0);
-    let timer0 = timer_group0.timer0;
-
-    // INIT EMBASSY
-    let sw_ints = SoftwareInterruptControl::new(peripherals.SW_INTERRUPT);
-    let int0 = sw_ints.software_interrupt0;
-    esp_rtos::start(timer0, int0);
-
-    info!("Hello from async main!");
-
-    LED_SIGNAL.signal(LedCmd::Blink(1000));
+    LED_SIGNAL.signal(LedCmd::Blink(100));
 
     spawner.spawn(led::led_task(led)).unwrap();
 }

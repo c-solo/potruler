@@ -1,69 +1,29 @@
-use embassy_time::with_timeout;
-use esp_hal::{
-    gpio::DriveMode,
-    ledc,
-    ledc::{
-        LowSpeed,
-        channel::{Channel, ChannelIFace},
-        timer,
-        timer::{Timer, TimerIFace},
-    },
-    time::Rate,
+use embassy_stm32::{
+    gpio::Output,
 };
-use log::info;
+use embassy_time::with_timeout;
 use protocol::{channels::LED_SIGNAL, command::LedCmd};
 
 #[allow(dead_code)]
 pub struct Led {
     name: &'static str,
-    channel: Channel<'static, LowSpeed>,
+    pin: Output<'static>,
 }
 
 impl Led {
-    /// Creates new LED drive.
-    /// Use StaticCell for timer to create a static timer reference it's
-    /// important for embassy async tasks.
-    pub fn new(
-        name: &'static str,
-        timer: &'static mut Timer<'static, LowSpeed>,
-        mut channel: Channel<'static, LowSpeed>,
-    ) -> Result<Self, ledc::channel::Error> {
-        timer
-            .configure(timer::config::Config {
-                duty: timer::config::Duty::Duty14Bit,
-                clock_source: timer::LSClockSource::APBClk,
-                frequency: Rate::from_hz(24),
-            })
-            .unwrap();
-
-        channel.configure(ledc::channel::config::Config {
-            timer,
-            duty_pct: 0,
-            drive_mode: DriveMode::PushPull,
-        })?;
-
-        info!("Led '{}' initialized", name);
-
-        Ok(Self { name, channel })
+    /// Creates new LED driver.
+    pub fn new(name: &'static str, pin: Output<'static>) -> Self {
+        defmt::info!("Led '{}' initialized", name);
+        Self { name, pin }
     }
 
     pub fn on(&mut self) {
-        if let Err(err) = self.channel.set_duty(100) {
-            send_error(err)
-        };
+        self.pin.set_high();
     }
 
     pub fn off(&mut self) {
-        if let Err(err) = self.channel.set_duty(0) {
-            send_error(err)
-        };
+        self.pin.set_low();
     }
-}
-
-fn send_error(_err: ledc::channel::Error) {
-    // todo impl
-    // some Defect from modules should be sent through some channel somewhere, for example fo rlogging
-    // or showing on a display
 }
 
 /// Main operation task for the LED.

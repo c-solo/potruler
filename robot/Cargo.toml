@@ -8,15 +8,12 @@ resolver = "2"
 firmware = { path = "../firmware" }
 protocol = { path = "../protocol" }
 
-log.workspace = true
-static_cell.workspace = true
+embassy-stm32 = { workspace = true }
+embassy-executor = { workspace = true }
 
-# Esp related crates
-esp-hal = { workspace = true, features = ["esp32c3", "unstable", "rt"] }
-esp-println = { version = "0.16", default-features = false, features = ["esp32c3", "log-04", "uart"] }
-esp-backtrace = { version = "0.18", default-features = false, features = ["panic-handler", "println", "esp32c3"] }
-esp-bootloader-esp-idf = { version = "0.4", features = ["esp32c3"] }
+defmt.workspace = true
+defmt-rtt.workspace = true
+panic-probe = { version = "1", features = ["print-defmt"] }
 
-# Async with embassy
-embassy-executor = { version = "0.9", features = [] }
-esp-rtos = { version = "0.2.0", features = ["esp32c3", "embassy"] }
+cortex-m-rt = { version = "0.7" }
+cortex-m = { version = "0.7.7", features = ["inline-asm", "critical-section-single-core"] }
