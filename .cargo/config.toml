@@ -1,13 +1,11 @@
+[target.thumbv7em-none-eabihf]
+runner = "probe-rs run --chip STM32F401CCUx"
+
 [build]
-target = "riscv32imc-unknown-none-elf"
+target = "thumbv7em-none-eabihf"
 
-[target.riscv32imc-unknown-none-elf]
-runner = "espflash flash --monitor"
-
+[target.'cfg(all(target_arch = "arm", target_os = "none"))']
 rustflags = [
-    "-C", "link-arg=-Tlinkall.x",
-
-    # Required to obtain backtraces (e.g. when using the "esp-backtrace" crate.)
-    # NOTE: May negatively impact performance of produced code
-    "-C", "force-frame-pointers",
+    "-C", "link-arg=-Tlink.x",
+    "-C", "link-arg=-Tdefmt.x",
 ]

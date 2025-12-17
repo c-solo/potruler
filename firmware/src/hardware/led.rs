@@ -1,68 +1,31 @@
+use embassy_stm32::gpio::Output;
 use embassy_time::with_timeout;
-use esp_hal::{
-    gpio::DriveMode,
-    ledc,
-    ledc::{
-        Ledc, LowSpeed,
-        channel::{Channel, ChannelIFace},
-        timer::Timer,
-    },
-};
-use log::info;
 use protocol::{channels::LED_SIGNAL, command::LedCmd};
 
+#[allow(dead_code)]
 pub struct Led {
     name: &'static str,
-    channel: Channel<'static, LowSpeed>,
+    pin: Output<'static>,
 }
 
 impl Led {
-    /// Creates new LED driver instance for LEDC channel.
-    /// Use make_static!(timer) to create a static timer reference it's
-    /// important for embassy async tasks.
-    pub fn new(
-        name: &'static str,
-        ledc: &Ledc<'static>,
-        timer: &'static Timer<'static, LowSpeed>,
-        channel_num: ledc::channel::Number,
-        pin: impl esp_hal::gpio::OutputPin + 'static,
-    ) -> Result<Self, ledc::channel::Error> {
-        let mut channel: Channel<LowSpeed> = ledc.channel(channel_num, pin);
-        channel.configure(ledc::channel::config::Config {
-            timer,
-            duty_pct: 0,
-            drive_mode: DriveMode::PushPull,
-        })?;
-
-        let led = Self { name, channel };
-
-        info!(
-            "Led '{}' initialized for channel: {:?}",
-            led.name, channel_num
-        );
-
-        Ok(led)
+    /// Creates new LED driver.
+    pub fn new(name: &'static str, pin: Output<'static>) -> Self {
+        defmt::info!("Led '{}' initialized", name);
+        Self { name, pin }
     }
 
     pub fn on(&mut self) {
-        if let Err(err) = self.channel.set_duty(100) {
-            send_error(err)
-        };
+        self.pin.set_high();
     }
 
     pub fn off(&mut self) {
-        if let Err(err) = self.channel.set_duty(0) {
-            send_error(err)
-        };
+        self.pin.set_low();
     }
 }
 
-fn send_error(_err: ledc::channel::Error) {
-    // todo impl
-    // some Defect from modules should be sent through some channel somewhere, for example fo rlogging
-    // or showing on a display
-}
-
+/// Main operation task for the LED.
+/// Listens for commands on the [`LED_SIGNAL`] channel.
 #[embassy_executor::task]
 pub async fn led_task(mut led: Led) {
     let mut current_state = LedCmd::Off;

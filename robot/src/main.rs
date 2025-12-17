@@ -1,61 +1,63 @@
 #![no_std]
 #![no_main]
 
-use esp_backtrace as _;
-use esp_hal::{
-    interrupt::software::SoftwareInterruptControl,
-    ledc::{timer, timer::TimerIFace, Ledc},
-    time::Rate,
-    timer::timg::TimerGroup,
+use defmt_rtt as _;
+use firmware::hardware::{led, sensors};
+use panic_probe as _;
+use protocol::{channels::LED_SIGNAL, command::LedCmd};
+
+use core::cell::RefCell;
+use defmt as _;
+use embassy_executor::Spawner;
+use embassy_stm32::{
+    gpio::{Level, Output, Speed},
+    i2c::{self},
     Config,
 };
-use firmware::hardware::led;
-use log::info;
-use protocol::{channels::LED_SIGNAL, command::LedCmd};
-use static_cell::StaticCell;
+use embedded_hal_bus::i2c::RefCellDevice;
+use firmware::hardware::sensors::distance::DistanceSensor;
 
-esp_bootloader_esp_idf::esp_app_desc!();
+#[embassy_executor::main]
+async fn main(spawner: Spawner) {
+    let config = Config::default();
+    let p = embassy_stm32::init(config);
 
-static LEDC_TIMER: StaticCell<timer::Timer<esp_hal::ledc::LowSpeed>> = StaticCell::new();
+    defmt::info!("Initializing STM32F401CCU6...");
 
-#[esp_rtos::main]
-async fn main(spawner: embassy_executor::Spawner) {
-    esp_println::logger::init_logger(log::LevelFilter::Info);
+    let i2c = i2c::I2c::new_blocking(p.I2C1, p.PB8, p.PB9, i2c::Config::default());
+    // Store I2C bus in StaticCell with RefCell for shared access
+    let i2c_bus = sensors::I2C_BUS.init(RefCell::new(i2c));
 
-    let peripherals = esp_hal::init(Config::default());
+    let front_dist_sensor = DistanceSensor::new(
+        "front_dist",
+        RefCellDevice::new(i2c_bus),
+        Output::new(p.PB0, Level::Low, Speed::Low),
+        0x30,
+    );
 
-    // INIT LEDC
-    let mut ledc = Ledc::new(peripherals.LEDC);
-    ledc.set_global_slow_clock(esp_hal::ledc::LSGlobalClkSource::APBClk);
-    let timer = LEDC_TIMER.init(ledc.timer(timer::Number::Timer0));
-    timer
-        .configure(timer::config::Config {
-            duty: timer::config::Duty::Duty14Bit,
-            clock_source: timer::LSClockSource::APBClk,
-            frequency: Rate::from_hz(24),
-        })
+    let back_dist_sensor = DistanceSensor::new(
+        "back_dist",
+        RefCellDevice::new(i2c_bus),
+        Output::new(p.PB1, Level::Low, Speed::Low),
+        0x30,
+    );
+
+    // Initialize LED
+    let led_pin = Output::new(p.PC13, Level::Low, Speed::Low);
+    let led = led::Led::new("status_led", led_pin);
+
+    defmt::info!("All sensors initialized successfully!");
+
+    LED_SIGNAL.signal(LedCmd::Blink(100));
+
+    // Spawn tasks
+    spawner.spawn(led::led_task(led)).unwrap();
+    spawner
+        .spawn(sensors::sensor_polling([
+            front_dist_sensor,
+            back_dist_sensor,
+        ]))
         .unwrap();
 
-    let led = led::Led::new(
-        "status_led",
-        &ledc,
-        timer,
-        esp_hal::ledc::channel::Number::Channel0,
-        peripherals.GPIO18,
-    )
-    .unwrap();
-
-    let timer_group0 = TimerGroup::new(peripherals.TIMG0);
-    let timer0 = timer_group0.timer0;
-
-    // INIT EMBASSY
-    let sw_ints = SoftwareInterruptControl::new(peripherals.SW_INTERRUPT);
-    let int0 = sw_ints.software_interrupt0;
-    esp_rtos::start(timer0, int0);
-
-    info!("Hello from async main!");
-
-    LED_SIGNAL.signal(LedCmd::Blink(1000));
-
-    spawner.spawn(led::led_task(led)).unwrap();
+    defmt::info!("All tasks spawned, system ready!");
 }
