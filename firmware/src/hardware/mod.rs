@@ -1,3 +1,3 @@
-mod chassis;
+pub mod chassis;
 pub mod led;
-mod sensors;
+pub mod sensors;

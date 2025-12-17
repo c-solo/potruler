@@ -15,6 +15,7 @@ static_cell = {  version = "2.1", features = ["nightly"] }
 # STM32 related crates
 embassy-stm32 = { version = "0.4", features = ["defmt", "stm32f401cc", "unstable-pac", "memory-x", "time-driver-tim2", "exti"] }
 embedded-hal-async = { version = "1.0" }
+embedded-hal-bus = { version = "0.3" }
 
 # Async with embassy
 embassy-time = { version = "0.5", features = ["defmt", "defmt-timestamp-uptime", "tick-hz-1_000_000"] }

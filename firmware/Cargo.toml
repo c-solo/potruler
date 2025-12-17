@@ -6,9 +6,12 @@ edition = "2021"
 [dependencies]
 protocol = { path = "../protocol" }
 
-defmt = { workspace = true }
+defmt.workspace = true
+static_cell.workspace = true
+embassy-stm32.workspace = true
+embassy-time.workspace = true
+embassy-executor.workspace = true
+embedded-hal-bus.workspace = true
 
-embassy-stm32 = { workspace = true }
-embassy-time = { workspace = true }
-embassy-executor = { workspace = true }
-
+# distance sensor
+vl53l0x = "1"

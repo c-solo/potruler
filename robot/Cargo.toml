@@ -17,3 +17,5 @@ panic-probe = { version = "1", features = ["print-defmt"] }
 
 cortex-m-rt = { version = "0.7" }
 cortex-m = { version = "0.7.7", features = ["inline-asm", "critical-section-single-core"] }
+
+embedded-hal-bus.workspace = true

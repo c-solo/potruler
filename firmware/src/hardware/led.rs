@@ -1,6 +1,4 @@
-use embassy_stm32::{
-    gpio::Output,
-};
+use embassy_stm32::gpio::Output;
 use embassy_time::with_timeout;
 use protocol::{channels::LED_SIGNAL, command::LedCmd};
 
