@@ -1,26 +1,31 @@
 #![no_std]
 #![no_main]
 
-use defmt_rtt as _;
 use firmware::hardware::{led, sensors};
-use panic_probe as _;
 use protocol::{channels::LED_SIGNAL, command::LedCmd};
 
 use core::cell::RefCell;
-use defmt as _;
 use embassy_executor::Spawner;
 use embassy_stm32::{
     gpio::{Level, Output, Speed},
     i2c::{self},
     Config,
 };
+use embassy_time::{Duration, Timer};
 use embedded_hal_bus::i2c::RefCellDevice;
 use firmware::hardware::sensors::distance::DistanceSensor;
+
+use defmt as _;
+use defmt_rtt as _;
+use panic_probe as _;
 
 #[embassy_executor::main]
 async fn main(spawner: Spawner) {
     let config = Config::default();
     let p = embassy_stm32::init(config);
+
+    // Small delay to allow RTT connection to establish
+    Timer::after(Duration::from_millis(100)).await;
 
     defmt::info!("Initializing STM32F401CCU6...");
 

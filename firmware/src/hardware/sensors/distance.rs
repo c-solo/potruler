@@ -28,8 +28,10 @@ impl DistanceSensor {
         // wait for sensor to boot
         block_for(Duration::from_millis(10));
 
-        let mut sensor = VL53L0x::new(i2c).expect("TODO handle error");
-        sensor.set_address(new_addr).expect("TODO to set address");
+        let mut sensor = VL53L0x::new(i2c).expect("fail to create VL53L0x");
+        sensor
+            .set_address(new_addr)
+            .expect("fail to set new VL53L0x address");
 
         info!(
             "Distance sensor '{}' initialized at address 0x{}",

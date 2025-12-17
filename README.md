@@ -2,4 +2,5 @@
 
 ## Build and flash 
 
-cargo run --release 
+DEFMT_LOG=info cargo run --release
+
