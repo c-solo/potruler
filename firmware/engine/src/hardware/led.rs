@@ -36,7 +36,7 @@ pub enum LedCmd {
 /// Main operation task for the LED.
 /// Listens for commands on the [`LED_SIGNAL`] channel.
 #[embassy_executor::task]
-pub async fn led_task(mut led: Led) {
+pub async fn led_handler(mut led: Led) {
     let mut current_state = LedCmd::Off;
 
     loop {

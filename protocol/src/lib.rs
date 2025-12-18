@@ -4,6 +4,8 @@
 
 // TODO: Design
 
+pub mod sensors;
+
 #[derive(defmt::Format)]
 pub enum Sensor {
     /// Mesures distance, detects obstacle.

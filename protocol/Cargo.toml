@@ -9,3 +9,4 @@ path = "src/lib.rs"
 [dependencies]
 
 defmt.workspace = true
+embassy-sync.workspace = true
