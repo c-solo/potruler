@@ -11,8 +11,10 @@ use protocol::{
 };
 use static_cell::StaticCell;
 
-use crate::protocol::{bus::ERROR_CH, SystemError};
-use crate::hardware::sensors::distance::DistanceSensor;
+use crate::{
+    hardware::sensors::distance::DistanceSensor,
+    protocol::{bus::ERROR_CH, SystemError},
+};
 
 pub mod cliff;
 pub mod distance;
@@ -35,7 +37,9 @@ pub async fn sensor_polling(mut front_dist: DistanceSensor, mut back_dist: Dista
                 Ok(mm) => TELEMETRY_CH.send(Telemetry::DistanceFront { mm }).await,
                 Err(err) => {
                     warn!("Front distance sensor error: {:?}", err);
-                    ERROR_CH.send(SystemError::SensorError(Sensor::Distance)).await
+                    ERROR_CH
+                        .send(SystemError::SensorError(Sensor::Distance))
+                        .await
                 }
             }
             front_dist.update_next_poll_at(now);
@@ -46,7 +50,9 @@ pub async fn sensor_polling(mut front_dist: DistanceSensor, mut back_dist: Dista
                 Ok(mm) => TELEMETRY_CH.send(Telemetry::DistanceBack { mm }).await,
                 Err(e) => {
                     warn!("Back distance sensor error: {:?}", e);
-                    ERROR_CH.send(SystemError::SensorError(Sensor::Distance)).await;
+                    ERROR_CH
+                        .send(SystemError::SensorError(Sensor::Distance))
+                        .await;
                 }
             }
             back_dist.update_next_poll_at(now);

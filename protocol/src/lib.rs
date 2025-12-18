@@ -4,6 +4,7 @@
 
 // TODO: Design
 
+pub mod movements;
 pub mod sensors;
 
 #[derive(defmt::Format)]
@@ -22,17 +23,4 @@ pub enum EngineEvent {
     EmergencyStop,
     LowBattery,
     Unavailable(Sensor),
-}
-
-/// Command to control the movement of the robot.
-#[derive(defmt::Format)]
-pub struct MoveCommand {
-    /// -1.0 to 1.0 (Left/Right)
-    pub x: f32,
-    /// -1.0 to 1.0 (Forward/Backward)
-    pub y: f32,
-    /// -1.0 to 1.0 (Rotation)
-    pub rot: f32,
-    /// Speed Multiplier.
-    pub speed: f32,
 }
