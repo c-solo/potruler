@@ -2,3 +2,4 @@
 
 pub mod core;
 pub mod hardware;
+mod protocol;

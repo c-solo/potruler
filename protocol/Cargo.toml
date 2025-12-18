@@ -8,4 +8,4 @@ path = "src/lib.rs"
 
 [dependencies]
 
-embassy-sync.workspace = true
+defmt.workspace = true

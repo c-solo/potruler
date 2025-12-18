@@ -1,10 +1,11 @@
 [package]
-name = "firmware"
+name = "engine"
+description = "Engine node - firmware for the robot MCU controlling motors and sensors"
 version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-protocol = { path = "../protocol" }
+protocol = { path = "../../protocol" }
 
 defmt.workspace = true
 static_cell.workspace = true
@@ -12,6 +13,7 @@ embassy-stm32.workspace = true
 embassy-time.workspace = true
 embassy-executor.workspace = true
 embedded-hal-bus.workspace = true
+embassy-sync.workspace = true
 
 # distance sensor
 vl53l0x = "1"

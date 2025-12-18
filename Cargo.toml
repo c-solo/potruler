@@ -2,8 +2,8 @@
 resolver = "2"
 members = [
     "protocol",
-    "firmware",
-    "robot"
+    "firmware/engine",
+    "firmware/robot"
 ]
 
 [workspace.dependencies]

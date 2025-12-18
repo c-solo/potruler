@@ -10,8 +10,7 @@ lto = true
 opt-level = 'z'
 
 [dependencies]
-firmware = { path = "../firmware" }
-protocol = { path = "../protocol" }
+engine = { path = "../engine" }
 
 embassy-stm32 = { workspace = true }
 embassy-executor = { workspace = true }
