@@ -20,12 +20,21 @@ use engine::hardware::chassis::SkidSteer;
 
 use defmt as _;
 use defmt_rtt as _;
-use engine::hardware::chassis;
 use panic_probe as _;
+
+use embassy_stm32::timer::qei::{Qei, QeiPin};
+use engine::hardware::{
+    chassis,
+    sensors::{
+        encoder,
+        encoder::{Encoder, WheelEncoderConfig},
+    },
+};
 
 #[embassy_executor::main]
 async fn main(spawner: Spawner) {
     let p = embassy_stm32::init(Config::default());
+    // System clock switched to sTIM5
 
     // Small delay to allow RTT connection to establish
     Timer::after(Duration::from_millis(10)).await;
@@ -42,6 +51,18 @@ async fn main(spawner: Spawner) {
     spawner
         .spawn(chassis::movement_handler(skid_steer))
         .expect("failed to spawn movement handler");
+
+    // Initialize wheel encoder
+    let left = Qei::new(p.TIM1, QeiPin::new(p.PA8), QeiPin::new(p.PA9));
+    let right = Qei::new(p.TIM2, QeiPin::new(p.PA0), QeiPin::new(p.PA1));
+    let config = WheelEncoderConfig {
+        pulses_per_revolution: 1500.0,
+        wheel_diameter_mm: 80.0,
+    };
+    let wheel_encoders = Encoder::new(left, right, config);
+    spawner
+        .spawn(encoder::encoder_handler(wheel_encoders))
+        .unwrap();
 
     // Initialize I2C sensors
     let mut i2c_cfg = i2c::Config::default();

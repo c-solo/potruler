@@ -18,6 +18,7 @@ use crate::{
 
 pub mod cliff;
 pub mod distance;
+pub mod encoder;
 
 /// Static storage for the I2C bus using StaticCell + RefCell pattern
 pub static SHARED_I2C: StaticCell<RefCell<I2c<'static, Blocking, Master>>> = StaticCell::new();

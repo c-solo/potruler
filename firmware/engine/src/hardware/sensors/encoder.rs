@@ -1,0 +1,56 @@
+//! Wheel XD-37GB520 Encoder Driver.
+
+use embassy_stm32::{
+    peripherals::{TIM1, TIM2},
+    timer::qei::Qei,
+};
+
+#[derive(defmt::Format)]
+pub struct WheelEncoderConfig {
+    /// Number of pulses per wheel revolution.
+    pub pulses_per_revolution: f32,
+    /// Wheel diameter in millimeters.
+    pub wheel_diameter_mm: f32,
+}
+
+/// Wheel encoder driver.
+pub struct Encoder {
+    /// Left side encoder.
+    left: Qei<'static, TIM1>,
+    /// Right side encoder.
+    right: Qei<'static, TIM2>,
+    /// Cached left encoder last count.
+    left_count: u32,
+    /// Cached right encoder last count.
+    right_count: u32,
+    config: WheelEncoderConfig,
+}
+
+impl Encoder {
+    pub fn new(
+        left: Qei<'static, TIM1>,
+        right: Qei<'static, TIM2>,
+        config: WheelEncoderConfig,
+    ) -> Self {
+        Encoder {
+            left,
+            right,
+            left_count: 0,
+            right_count: 0,
+            config,
+        }
+    }
+
+    pub fn left_count(&self) -> i32 {
+        self.left.count() as i32
+    }
+
+    pub fn right_count(&self) -> i32 {
+        self.right.count() as i32
+    }
+}
+
+#[embassy_executor::task]
+pub async fn encoder_handler(mut _encoder: Encoder) {
+    todo!();
+}
